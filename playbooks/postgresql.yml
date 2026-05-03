@@ -1,0 +1,49 @@
+---
+- name: Instalar y configurar PostgreSQL
+  hosts: dbservers
+  become: true
+  vars:
+    db_port: "{{ db_port | default(5432) }}"
+    db_name: "{{ db_name | default('appdb') }}"
+    db_user: "appuser"
+    db_password: "secretpassword"
+
+  tasks:
+    - name: Instalar PostgreSQL
+      ansible.builtin.apt:
+        name:
+          - postgresql
+          - postgresql-contrib
+        state: present
+        update_cache: true
+
+    - name: Habilitar servicio PostgreSQL
+      ansible.builtin.systemd:
+        name: postgresql
+        enabled: true
+        state: started
+
+    - name: Configurar puerto en postgresql.conf
+      ansible.builtin.lineinfile:
+        path: /etc/postgresql/14/main/postgresql.conf
+        regexp: "^port ="
+        line: "port = {{ db_port }}"
+      notify: Reiniciar PostgreSQL
+
+    - name: Crear usuario de base de datos
+      ansible.builtin.command: >
+        psql -c "CREATE USER {{ db_user }} WITH PASSWORD '{{ db_password }}';"
+      become_user: postgres
+      ignore_errors: true
+
+    - name: Crear base de datos
+      ansible.builtin.command: >
+        psql -c "CREATE DATABASE {{ db_name }} OWNER {{ db_user }};"
+      become_user: postgres
+      ignore_errors: true
+
+  handlers:
+    - name: Reiniciar PostgreSQL
+      ansible.builtin.service:
+        name: postgresql
+        state: restarted

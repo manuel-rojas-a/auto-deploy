@@ -1,0 +1,39 @@
+---
+- name: Instalar y configurar Nginx
+  hosts: webservers
+  become: true
+  vars:
+    nginx_port: "{{ http_port | default(80) }}"
+    app_domain: "app.example.com"
+
+  tasks:
+    - name: Instalar Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: true
+
+    - name: Copiar configuracion de Nginx
+      ansible.builtin.template:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/sites-available/{{ app_domain }}
+      notify: Reiniciar Nginx
+
+    - name: Activar sitio
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/{{ app_domain }}
+        dest: /etc/nginx/sites-enabled/{{ app_domain }}
+        state: link
+      notify: Reiniciar Nginx
+
+    - name: Habilitar servicio Nginx
+      ansible.builtin.systemd:
+        name: nginx
+        enabled: true
+        state: started
+
+  handlers:
+    - name: Reiniciar Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

@@ -1,0 +1,39 @@
+---
+- name: Configuracion inicial del servidor
+  hosts: all
+  become: true
+  vars:
+    ssh_port: 22
+    timezone: "America/Lima"
+
+  tasks:
+    - name: Actualizar cache de paquetes
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Instalar paquetes esenciales
+      ansible.builtin.apt:
+        name:
+          - curl
+          - wget
+          - git
+          - vim
+          - htop
+          - ufw
+        state: present
+
+    - name: Configurar zona horaria
+      community.general.timezone:
+        name: "{{ timezone }}"
+
+    - name: Configurar firewall
+      community.general.ufw:
+        rule: allow
+        port: "{{ ssh_port }}"
+        proto: tcp
+
+    - name: Habilitar firewall
+      community.general.ufw:
+        state: enabled
+        policy: deny

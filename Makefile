@@ -9,6 +9,7 @@ help:
 	@echo "  make lint             - Ejecutar linter Ruff"
 	@echo "  make deploy           - Ejecutar playbook de Nginx"
 	@echo "  make setup            - Ejecutar setup inicial del servidor"
+	@echo "  make monitoring       - Instalar monitoreo Node Exporter"
 	@echo "  make ci               - Ejecutar pipeline CI completo"
 	@echo "  make vagrant-up       - Levantar máquinas virtuales (Vagrant)"
 	@echo "  make vagrant-destroy  - Destruir máquinas virtuales"
@@ -30,6 +31,9 @@ deploy:
 setup:
 	ansible-playbook -i inventory/generated.yml playbooks/setup.yml
 
+monitoring:
+	ansible-playbook -i inventory/generated.yml playbooks/monitoring.yml
+
 ci: test validate lint
 
 lint:
@@ -46,9 +50,10 @@ vagrant-provision:
 	ansible-playbook -i inventory/generated.yml playbooks/setup.yml
 	ansible-playbook -i inventory/generated.yml playbooks/nginx.yml
 	ansible-playbook -i inventory/generated.yml playbooks/postgresql.yml
+	ansible-playbook -i inventory/generated.yml playbooks/monitoring.yml
 
 vagrant-ssh:
-	ssh -i ~/.vagrant.d/insecure_private_key vagrant@192.168.50.10
+	ssh -i ~/.vagrant.d/insecure_private_key vagrant@192.168.122.10
 
 clean:
 	rm -f inventory/generated.yml

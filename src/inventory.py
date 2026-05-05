@@ -25,7 +25,7 @@ SERVERS = {
 # Configuración para Vagrant (Local)
 VAGRANT_SERVERS = {
     "webservers": {
-        "hosts": ["172.28.128.10", "172.28.128.11"],
+        "hosts": ["10.10.10.10", "10.10.10.11"],
         "vars": {
             "http_port": 80,
             "max_clients": 200,
@@ -34,7 +34,7 @@ VAGRANT_SERVERS = {
         },
     },
     "dbservers": {
-        "hosts": ["172.28.128.20"],
+        "hosts": ["10.10.10.20"],
         "vars": {
             "db_port": 5432,
             "db_name": "appdb",

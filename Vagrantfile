@@ -10,7 +10,22 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.provider :libvirt do |libvirt|
-    libvirt.management_network_address = '172.28.128.0/24'
+    libvirt.management_network_address = '10.10.10.0/24'
+  end
+
+  config.vm.define "web1" do |web|
+    web.vm.network "private_network", ip: "10.10.10.10"
+    web.vm.hostname = "web1.example.com"
+  end
+
+  config.vm.define "web2" do |web|
+    web.vm.network "private_network", ip: "10.10.10.11"
+    web.vm.hostname = "web2.example.com"
+  end
+
+  config.vm.define "db1" do |db|
+    db.vm.network "private_network", ip: "10.10.10.20"
+    db.vm.hostname = "db1.example.com"
   end
 
   config.vm.define "web1" do |web|

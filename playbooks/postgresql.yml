@@ -3,8 +3,6 @@
   hosts: dbservers
   become: true
   vars:
-    db_port: "{{ db_port | default(5432) }}"
-    db_name: "{{ db_name | default('appdb') }}"
     db_user: "appuser"
     db_password: "secretpassword"
 
@@ -34,12 +32,14 @@
       ansible.builtin.command: >
         psql -c "CREATE USER {{ db_user }} WITH PASSWORD '{{ db_password }}';"
       become_user: postgres
+      become_method: su
       ignore_errors: true
 
     - name: Crear base de datos
       ansible.builtin.command: >
         psql -c "CREATE DATABASE {{ db_name }} OWNER {{ db_user }};"
       become_user: postgres
+      become_method: su
       ignore_errors: true
 
   handlers:

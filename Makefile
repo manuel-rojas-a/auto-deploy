@@ -1,4 +1,4 @@
-.PHONY: help inventory test validate deploy setup ci clean \
+.PHONY: help inventory test validate deploy setup ci clean lint \
         vagrant-up vagrant-destroy vagrant-provision vagrant-ssh
 
 help:
@@ -6,6 +6,7 @@ help:
 	@echo "  make inventory        - Generar inventario Ansible"
 	@echo "  make test             - Ejecutar tests unitarios"
 	@echo "  make validate         - Validar playbooks Ansible"
+	@echo "  make lint             - Ejecutar linter Ruff"
 	@echo "  make deploy           - Ejecutar playbook de Nginx"
 	@echo "  make setup            - Ejecutar setup inicial del servidor"
 	@echo "  make ci               - Ejecutar pipeline CI completo"
@@ -29,7 +30,10 @@ deploy:
 setup:
 	ansible-playbook -i inventory/generated.yml playbooks/setup.yml
 
-ci: test validate
+ci: test validate lint
+
+lint:
+	ruff check src/ tests/
 
 vagrant-up:
 	vagrant up

@@ -9,6 +9,10 @@ Vagrant.configure("2") do |config|
     vb.cpus = 1
   end
 
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.management_network_address = '192.168.50.0/24'
+  end
+
   config.vm.define "web1" do |web|
     web.vm.network "private_network", ip: "192.168.50.10"
     web.vm.hostname = "web1.example.com"

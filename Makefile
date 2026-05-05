@@ -44,7 +44,7 @@ vagrant-provision:
 	ansible-playbook -i inventory/generated.yml playbooks/postgresql.yml
 
 vagrant-ssh:
-	ssh -i ~/.vagrant.d/insecure_private_key vagrant@10.10.10.10
+	ssh -i ~/.vagrant.d/insecure_private_key vagrant@192.168.122.10
 
 clean:
 	rm -f inventory/generated.yml

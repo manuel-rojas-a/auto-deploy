@@ -19,6 +19,12 @@
         dest: /etc/nginx/sites-available/{{ app_domain }}
       notify: Reiniciar Nginx
 
+    - name: Abrir puerto HTTP en firewall
+      community.general.ufw:
+        rule: allow
+        port: "{{ nginx_port }}"
+        proto: tcp
+
     - name: Activar sitio
       ansible.builtin.file:
         src: /etc/nginx/sites-available/{{ app_domain }}

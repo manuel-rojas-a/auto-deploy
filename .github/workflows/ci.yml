@@ -42,3 +42,21 @@ jobs:
 
       - name: Validate playbooks
         run: python3 src/validator.py
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install ruff
+
+      - name: Lint with Ruff
+        run: make lint

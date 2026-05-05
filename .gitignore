@@ -13,3 +13,4 @@ inventory/*.yml
 *.secret
 *.key
 *.pem
+.vagrant/

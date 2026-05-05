@@ -1,0 +1,26 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "generic/ubuntu2204"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "512"
+    vb.cpus = 1
+  end
+
+  config.vm.define "web1" do |web|
+    web.vm.network "private_network", ip: "192.168.50.10"
+    web.vm.hostname = "web1.example.com"
+  end
+
+  config.vm.define "web2" do |web|
+    web.vm.network "private_network", ip: "192.168.50.11"
+    web.vm.hostname = "web2.example.com"
+  end
+
+  config.vm.define "db1" do |db|
+    db.vm.network "private_network", ip: "192.168.50.20"
+    db.vm.hostname = "db1.example.com"
+  end
+end

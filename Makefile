@@ -1,14 +1,18 @@
-.PHONY: help inventory test validate deploy setup ci clean
+.PHONY: help inventory test validate deploy setup ci clean \
+        vagrant-up vagrant-destroy vagrant-provision vagrant-ssh
 
 help:
 	@echo "Comandos disponibles:"
-	@echo "  make inventory  - Generar inventario Ansible"
-	@echo "  make test       - Ejecutar tests unitarios"
-	@echo "  make validate   - Validar playbooks Ansible"
-	@echo "  make deploy     - Ejecutar playbook de Nginx"
-	@echo "  make setup      - Ejecutar setup inicial del servidor"
-	@echo "  make ci         - Ejecutar pipeline CI completo"
-	@echo "  make clean      - Limpiar archivos generados"
+	@echo "  make inventory        - Generar inventario Ansible"
+	@echo "  make test             - Ejecutar tests unitarios"
+	@echo "  make validate         - Validar playbooks Ansible"
+	@echo "  make deploy           - Ejecutar playbook de Nginx"
+	@echo "  make setup            - Ejecutar setup inicial del servidor"
+	@echo "  make ci               - Ejecutar pipeline CI completo"
+	@echo "  make vagrant-up       - Levantar máquinas virtuales (Vagrant)"
+	@echo "  make vagrant-destroy  - Destruir máquinas virtuales"
+	@echo "  make vagrant-provision- Provisionar VMs con Ansible"
+	@echo "  make clean            - Limpiar archivos generados"
 
 inventory:
 	python3 src/inventory.py
@@ -26,6 +30,21 @@ setup:
 	ansible-playbook -i inventory/generated.yml playbooks/setup.yml
 
 ci: test validate
+
+vagrant-up:
+	vagrant up
+
+vagrant-destroy:
+	vagrant destroy -f
+
+vagrant-provision:
+	python3 src/inventory.py --vagrant
+	ansible-playbook -i inventory/generated.yml playbooks/setup.yml
+	ansible-playbook -i inventory/generated.yml playbooks/nginx.yml
+	ansible-playbook -i inventory/generated.yml playbooks/postgresql.yml
+
+vagrant-ssh:
+	ssh -i ~/.vagrant.d/insecure_private_key vagrant@192.168.50.10
 
 clean:
 	rm -f inventory/generated.yml

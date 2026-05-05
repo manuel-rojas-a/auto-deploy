@@ -1,0 +1,52 @@
+name: Release & Deploy
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  release-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Run tests
+        run: make test
+
+      - name: Validate playbooks
+        run: make validate
+
+  deploy:
+    needs: release-validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Ansible
+        run: pip install ansible
+
+      - name: Dry-run Deployment
+        run: |
+          echo "🚀 Desplegando version ${{ github.event.release.tag_name }}"
+          echo "📦 Generando inventario..."
+          python3 src/inventory.py
+          echo "🔍 Validando configuracion..."
+          ansible-playbook -i inventory/generated.yml playbooks/setup.yml --check
+          ansible-playbook -i inventory/generated.yml playbooks/nginx.yml --check
+          ansible-playbook -i inventory/generated.yml playbooks/postgresql.yml --check
+          echo "✅ Despliegue simulado exitoso!"

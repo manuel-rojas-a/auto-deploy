@@ -28,9 +28,9 @@
         mode: "0644"
 
     - name: Instalar Flask en venv
-      ansible.builtin.command: pip3 install flask --break-system-packages
+      ansible.builtin.command: pip3 install flask
       args:
-        creates: /usr/lib/python3/dist-packages/flask/__init__.py
+        creates: /opt/auto-deploy/venv/bin/flask
 
     - name: Crear servicio systemd para la app
       ansible.builtin.copy:
@@ -42,7 +42,7 @@
           [Service]
           User=root
           WorkingDirectory=/opt/auto-deploy
-          ExecStart=/usr/bin/python3 /opt/auto-deploy/app.py
+          ExecStart=/opt/auto-deploy/venv/bin/python /opt/auto-deploy/app.py
           Restart=always
 
           [Install]

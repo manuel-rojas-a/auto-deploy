@@ -41,6 +41,7 @@ monitoring:
 	ansible-playbook -i inventory/generated.yml playbooks/monitoring.yml
 
 monitoring-stack:
+	python3 src/inventory.py --vagrant
 	ansible-playbook -i inventory/generated.yml playbooks/monitoring_stack.yml
 
 deploy-stack: flask monitoring-stack

@@ -38,19 +38,3 @@ Vagrant.configure("2") do |config|
     end
   end
 end
-
-  config.vm.define "web1" do |web|
-    web.vm.network "private_network", ip: "172.28.128.10"
-    web.vm.hostname = "web1.example.com"
-  end
-
-  config.vm.define "web2" do |web|
-    web.vm.network "private_network", ip: "172.28.128.11"
-    web.vm.hostname = "web2.example.com"
-  end
-
-  config.vm.define "db1" do |db|
-    db.vm.network "private_network", ip: "172.28.128.20"
-    db.vm.hostname = "db1.example.com"
-  end
-end

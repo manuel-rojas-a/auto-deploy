@@ -1,0 +1,112 @@
+---
+- name: Instalar Prometheus y Grafana
+  hosts: monitor
+  become: true
+  vars:
+    prometheus_version: "2.47.0"
+    grafana_port: 3000
+
+  tasks:
+    - name: Instalar Prometheus
+      block:
+        - name: Descargar Prometheus
+          ansible.builtin.get_url:
+            url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+            dest: /tmp/prometheus.tar.gz
+            mode: "0644"
+
+        - name: Extraer Prometheus
+          ansible.builtin.unarchive:
+            src: /tmp/prometheus.tar.gz
+            dest: /opt/
+            remote_src: true
+
+        - name: Copiar binarios de Prometheus
+          ansible.builtin.copy:
+            src: /opt/prometheus-{{ prometheus_version }}.linux-amd64/{{ item }}
+            dest: /usr/local/bin/{{ item }}
+            remote_src: true
+            mode: "0755"
+          loop:
+            - prometheus
+            - promtool
+
+        - name: Configurar Prometheus
+          ansible.builtin.copy:
+            content: |
+              global:
+                scrape_interval: 15s
+
+              scrape_configs:
+                - job_name: 'node'
+                  static_configs:
+                    - targets: ['192.168.122.10:9100', '192.168.122.11:9100', '192.168.122.20:9100']
+
+                - job_name: 'flask'
+                  static_configs:
+                    - targets: ['192.168.122.10:5000', '192.168.122.11:5000']
+            dest: /etc/prometheus.yml
+
+        - name: Crear servicio systemd para Prometheus
+          ansible.builtin.copy:
+            content: |
+              [Unit]
+              Description=Prometheus
+              Wants=network-online.target
+              After=network-online.target
+
+              [Service]
+              User=root
+              ExecStart=/usr/local/bin/prometheus --config.file=/etc/prometheus.yml
+
+              [Install]
+              WantedBy=multi-user.target
+            dest: /etc/systemd/system/prometheus.service
+          notify: Reiniciar Prometheus
+
+    - name: Instalar Grafana
+      block:
+        - name: Instalar dependencias Grafana
+          ansible.builtin.apt:
+            name:
+              - apt-transport-https
+              - software-properties-common
+            state: present
+            update_cache: true
+
+        - name: Agregar key de Grafana
+          ansible.builtin.get_url:
+            url: "https://apt.grafana.com/gpg.key"
+            dest: /usr/share/keyrings/grafana.key
+            mode: "0644"
+
+        - name: Agregar repositorio Grafana
+          ansible.builtin.apt_repository:
+            repo: "deb [signed-by=/usr/share/keyrings/grafana.key] https://apt.grafana.com stable main"
+            state: present
+
+        - name: Instalar Grafana
+          ansible.builtin.apt:
+            name: grafana
+            state: present
+            update_cache: true
+
+        - name: Habilitar Grafana
+          ansible.builtin.systemd:
+            name: grafana-server
+            enabled: true
+            state: started
+
+        - name: Abrir puerto Grafana
+          community.general.ufw:
+            rule: allow
+            port: "{{ grafana_port }}"
+            proto: tcp
+
+  handlers:
+    - name: Reiniciar Prometheus
+      ansible.builtin.systemd:
+        name: prometheus
+        state: restarted
+        enabled: true
+        daemon_reload: true

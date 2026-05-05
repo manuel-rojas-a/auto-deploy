@@ -30,6 +30,15 @@ Vagrant.configure("2") do |config|
     db.vm.hostname = "db1.example.com"
   end
 
+  config.vm.define "monitor" do |mon|
+    mon.vm.network "private_network", ip: "192.168.122.30"
+    mon.vm.hostname = "monitor.example.com"
+    mon.vm.provider :libvirt do |libvirt|
+      libvirt.memory = 1024
+    end
+  end
+end
+
   config.vm.define "web1" do |web|
     web.vm.network "private_network", ip: "172.28.128.10"
     web.vm.hostname = "web1.example.com"

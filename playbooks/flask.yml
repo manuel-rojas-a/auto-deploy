@@ -1,0 +1,70 @@
+---
+- name: Desplegar Aplicacion Flask
+  hosts: webservers
+  become: true
+  vars:
+    flask_port: 5000
+
+  tasks:
+    - name: Instalar Python y PIP
+      ansible.builtin.apt:
+        name:
+          - python3
+          - python3-pip
+          - python3-venv
+        state: present
+        update_cache: true
+
+    - name: Crear directorio de la app
+      ansible.builtin.file:
+        path: /opt/auto-deploy
+        state: directory
+        mode: "0755"
+
+    - name: Copiar codigo de la app
+      ansible.builtin.copy:
+        src: ../src/app.py
+        dest: /opt/auto-deploy/app.py
+        mode: "0644"
+
+    - name: Instalar Flask en venv
+      ansible.builtin.command: pip3 install flask --break-system-packages
+      args:
+        creates: /usr/lib/python3/dist-packages/flask/__init__.py
+
+    - name: Crear servicio systemd para la app
+      ansible.builtin.copy:
+        content: |
+          [Unit]
+          Description=Auto-Deploy Flask App
+          After=network.target
+
+          [Service]
+          User=root
+          WorkingDirectory=/opt/auto-deploy
+          ExecStart=/usr/bin/python3 /opt/auto-deploy/app.py
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/auto-deploy.service
+      notify: Reiniciar App
+
+    - name: Abrir puerto Flask en firewall
+      community.general.ufw:
+        rule: allow
+        port: "{{ flask_port }}"
+        proto: tcp
+
+    - name: Habilitar y iniciar app
+      ansible.builtin.systemd:
+        name: auto-deploy
+        enabled: true
+        state: started
+
+  handlers:
+    - name: Reiniciar App
+      ansible.builtin.systemd:
+        name: auto-deploy
+        state: restarted
+        daemon_reload: true

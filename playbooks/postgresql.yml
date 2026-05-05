@@ -4,7 +4,7 @@
   become: true
   vars:
     db_user: "appuser"
-    db_password: "secretpassword"
+    db_password: "CHANGE_ME_USE_ANSIBLE_VAULT"
 
   tasks:
     - name: Instalar PostgreSQL

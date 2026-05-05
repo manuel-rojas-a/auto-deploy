@@ -4,6 +4,7 @@
 import yaml
 import os
 
+# Configuración por defecto (Servidores remotos)
 SERVERS = {
     "webservers": {
         "hosts": ["web1.example.com", "web2.example.com"],
@@ -21,12 +22,35 @@ SERVERS = {
     },
 }
 
+# Configuración para Vagrant (Local)
+VAGRANT_SERVERS = {
+    "webservers": {
+        "hosts": ["192.168.50.10", "192.168.50.11"],
+        "vars": {
+            "http_port": 80,
+            "max_clients": 200,
+            "ansible_user": "vagrant",
+            "ansible_ssh_private_key_file": "~/.vagrant.d/insecure_private_key",
+        },
+    },
+    "dbservers": {
+        "hosts": ["192.168.50.20"],
+        "vars": {
+            "db_port": 5432,
+            "db_name": "appdb",
+            "ansible_user": "vagrant",
+            "ansible_ssh_private_key_file": "~/.vagrant.d/insecure_private_key",
+        },
+    },
+}
 
-def generate_inventory(servers, output_path):
+
+def generate_inventory(servers, output_path, use_vagrant=False):
     """Genera archivo YAML de inventario Ansible."""
     inventory = {}
+    target_servers = VAGRANT_SERVERS if use_vagrant else servers
 
-    for group, config in servers.items():
+    for group, config in target_servers.items():
         inventory[group] = {
             "hosts": {host: config.get("vars", {}) for host in config["hosts"]}
         }
@@ -42,4 +66,6 @@ def generate_inventory(servers, output_path):
 
 if __name__ == "__main__":
     OUTPUT = "inventory/generated.yml"
-    generate_inventory(SERVERS, OUTPUT)
+    # Modo Vagrant si se pasa el argumento --vagrant
+    use_vagrant = "--vagrant" in __import__("sys").argv
+    generate_inventory(SERVERS, OUTPUT, use_vagrant=use_vagrant)
